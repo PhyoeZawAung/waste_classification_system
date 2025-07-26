@@ -127,16 +127,18 @@ class YOLOApp:
         prediction_frame.pack(fill=X, pady=(0, 10))
 
         # Create Treeview for prediction details
-        pred_columns = ("Object", "Confidence", "Box Coordinates")
+        pred_columns = ("Object", "Confidence", "Waste Category", "Box Coordinates")
         self.prediction_tree = ttk.Treeview(prediction_frame, columns=pred_columns, show="headings", height=4)
         
         # Configure columns
         self.prediction_tree.heading("Object", text="Object")
         self.prediction_tree.heading("Confidence", text="Confidence")
+        self.prediction_tree.heading("Waste Category", text="Waste Category")
         self.prediction_tree.heading("Box Coordinates", text="Box Coordinates")
         
         self.prediction_tree.column("Object", width=100)
         self.prediction_tree.column("Confidence", width=100)
+        self.prediction_tree.column("Waste Category", width=120)
         self.prediction_tree.column("Box Coordinates", width=200)
         
         # Add scrollbar
@@ -230,14 +232,15 @@ class YOLOApp:
         if detected_objects:
             for obj in detected_objects:
                 if obj['confidence'] >= self.confidence_var.get():
-                    # Update text output
-                    self.text_output.insert(END, f"{obj['class']}: {obj['confidence']:.2f}\n")
+                    # Update text output with waste category
+                    self.text_output.insert(END, f"{obj['class']}: {obj['confidence']:.2f} ({obj['waste_category']})\n")
                     
                     # Update prediction tree
                     box_coords = f"x1:{obj['box'][0]:.0f}, y1:{obj['box'][1]:.0f}, x2:{obj['box'][2]:.0f}, y2:{obj['box'][3]:.0f}"
                     self.prediction_tree.insert("", END, values=(
                         obj['class'],
                         f"{obj['confidence']:.2f}",
+                        obj['waste_category'],
                         box_coords
                     ))
         else:
@@ -250,7 +253,7 @@ class YOLOApp:
             filtered_objects = [obj for obj in detected_objects 
                               if obj['confidence'] >= self.confidence_var.get()]
             if filtered_objects:
-                objects_str = ", ".join([f"{obj['class']}" for obj in filtered_objects])
+                objects_str = ", ".join([f"{obj['class']}({obj['waste_category']})" for obj in filtered_objects])
                 conf_str = ", ".join([f"{obj['confidence']:.2f}" for obj in filtered_objects])
                 
                 # Add to history
